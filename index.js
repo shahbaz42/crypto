@@ -97,6 +97,91 @@ function generateH() {
 }
 
 
+// SHA-256 helper functions (Section 4.2)
+
+/**
+ * Performs a right rotation (ROTR) operation on a given number. Section 3.2)
+ * @param {number} x - The number to be rotated.
+ * @param {number} n - The number of positions to rotate by.
+ * @param {number} [w=32] - The word size in bits. Defaults to 32.
+ * @returns {number} The result of the right rotation operation.
+ */
+function ROTR(x, n, w=32) {
+    return (x >>> n) | (x << (w - n)) & (Math.pow(2, w) - 1); // & (Math.pow(2, w) - 1) to get rid of overflow
+}  
+
+/**
+ * Performs a right shift (SHR) operation on a given number. (Section 3.2)
+ * @param {number} x - The number to be shifted.
+ * @param {number} n - The number of positions to shift by.
+ * @returns {number} The result of the right shift operation.
+ */
+function SHR(x, n) {
+    return x >>> n;
+}
+
+/**
+ * Calculates the CH (choose) function. (Section 4.1.2)
+ * @param {number} x - The first input.
+ * @param {number} y - The second input.
+ * @param {number} z - The third input.
+ * @returns {number} The result of the CH function.
+ */
+function CH(x, y, z) {
+    return (x & y) ^ (~x & z);
+}
+
+
+/**
+ * Performs the MAJ operation on three input values. Section 4.1.2)
+ * @param {number} x - The first input value.
+ * @param {number} y - The second input value.
+ * @param {number} z - The third input value.
+ * @returns {number} - The result of the MAJ operation.
+ */
+function MAJ(x, y, z) {
+    return (x & y) ^ (x & z) ^ (y & z);
+}
+
+/**
+ * Performs the sigma0 operation on a given number. (Section 4.1.2)
+ * @param {number} x - The input value.
+ * @returns {number} - The result of the sigma0 operation.
+ */
+function sigma0(x) {
+    return ROTR(x,7,32) ^ ROTR(x,18,32) ^ SHR(x,3,32);
+}
+
+/**
+ * Performs the sigma1 operation on a given number. (Section 4.1.2)
+ * @param {number} x - The input value.
+ * @returns {number} - The result of the sigma1 operation.
+ */
+function sigma1(x) {
+    return ROTR(x,17,32) ^ ROTR(x,19,32) ^ SHR(x,10,32);
+}
+
+/**
+ * Performs the SIGMA0  operation on a given number. (Section 4.1.2)
+ * @param {number} x - The input value.
+ * @returns {number} - The result of the SIGMA0 operation.
+ */
+function SIGMA0(x) {
+    return ROTR(x,2,32) ^ ROTR(x,13,32) ^ ROTR(x,22,32);
+}
+
+/**
+ * Performs the SIGMA1 operation on a given number. (Section 4.1.2)
+ * @param {number} x - The input value.
+ * @returns {number} - The result of the SIGMA1 operation.
+ */
+function SIGMA1(x) {
+    return ROTR(x,6,32) ^ ROTR(x,11,32) ^ ROTR(x,25,32);
+}
+
+
+
+
 
 
 
