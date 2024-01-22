@@ -1,4 +1,4 @@
-// SHA-256 constants (Section 4.2.2)
+/* ------- SHA-256 constants (Section 4.2.2) ------- */
 
 /**
  * Checks if a number is prime.
@@ -70,7 +70,7 @@ function fractionalBits(x, n) {
   '90befffa', 'a4506ceb', 'bef9a3f7', 'c67178f2'
  ]
  */
-function generateK() { 
+function generateK() {
     let primes = first_n_primes(64);
     let k = [];
     for (let i = 0; i < 64; i++) {
@@ -97,7 +97,8 @@ function generateH() {
 }
 
 
-// SHA-256 helper functions (Section 4.2)
+
+/* ---------- SHA-256 helper functions (Section 4.2) ---------- */
 
 /**
  * Performs a right rotation (ROTR) operation on a given number. Section 3.2)
@@ -106,9 +107,9 @@ function generateH() {
  * @param {number} [w=32] - The word size in bits. Defaults to 32.
  * @returns {number} The result of the right rotation operation.
  */
-function ROTR(x, n, w=32) {
+function ROTR(x, n, w = 32) {
     return (x >>> n) | (x << (w - n)) & (Math.pow(2, w) - 1); // & (Math.pow(2, w) - 1) to get rid of overflow
-}  
+}
 
 /**
  * Performs a right shift (SHR) operation on a given number. (Section 3.2)
@@ -149,7 +150,7 @@ function MAJ(x, y, z) {
  * @returns {number} - The result of the sigma0 operation.
  */
 function sigma0(x) {
-    return ROTR(x,7,32) ^ ROTR(x,18,32) ^ SHR(x,3,32);
+    return ROTR(x, 7, 32) ^ ROTR(x, 18, 32) ^ SHR(x, 3, 32);
 }
 
 /**
@@ -158,7 +159,7 @@ function sigma0(x) {
  * @returns {number} - The result of the sigma1 operation.
  */
 function sigma1(x) {
-    return ROTR(x,17,32) ^ ROTR(x,19,32) ^ SHR(x,10,32);
+    return ROTR(x, 17, 32) ^ ROTR(x, 19, 32) ^ SHR(x, 10, 32);
 }
 
 /**
@@ -167,7 +168,7 @@ function sigma1(x) {
  * @returns {number} - The result of the SIGMA0 operation.
  */
 function SIGMA0(x) {
-    return ROTR(x,2,32) ^ ROTR(x,13,32) ^ ROTR(x,22,32);
+    return ROTR(x, 2, 32) ^ ROTR(x, 13, 32) ^ ROTR(x, 22, 32);
 }
 
 /**
@@ -176,12 +177,61 @@ function SIGMA0(x) {
  * @returns {number} - The result of the SIGMA1 operation.
  */
 function SIGMA1(x) {
-    return ROTR(x,6,32) ^ ROTR(x,11,32) ^ ROTR(x,25,32);
+    return ROTR(x, 6, 32) ^ ROTR(x, 11, 32) ^ ROTR(x, 25, 32);
 }
 
+/* ------------------- Utility functions ------------------- */
 
 
+/**
+ * Converts a string to a byte array.
+ * @param {string} str - The string to convert.
+ * @returns {Uint8Array} The byte array representation of the string.
+ */
+function stringToByteArray(str) {
+    const encoder = new TextEncoder('utf-8');
+    return encoder.encode(str);
+}
+
+/* ---------- SHA-256 preprocessing (Section 6.2) ---------- */
 
 
+/**
+ * Pads the given message according to the SHA-1 padding scheme.
+ * 
+ * @param {string} message - The message to be padded.
+ * @returns {number[]} - The padded message as a byte array.
+ */
+function padMessage(message) {
+    byteArr = stringToByteArray(message);
+    let length = byteArr.length * 8;
+    
+    // Convert to binary string
+    let binaryStr = "";
+    for (let i = 0; i < byteArr.length; i++) {
+        binaryStr += byteArr[i].toString(2).padStart(8, '0');
+    }
 
+    // Append 1
+    binaryStr += "1";
 
+    // Append k 0s
+    let k = 448 - (binaryStr.length % 512);
+    if (k < 0) {
+        k += 512;
+    }
+    binaryStr += "0".repeat(k);
+
+    // Append length as 64-bit big-endian integer
+    binaryStr += length.toString(2).padStart(64, '0');
+
+    // Convert back to byte array
+    let paddedByteArr = [];
+    for (let i = 0; i < binaryStr.length; i += 8) {
+        paddedByteArr.push(parseInt(binaryStr.slice(i, i + 8), 2));
+    }
+
+    return paddedByteArr;
+}
+
+padMessage("abc");
