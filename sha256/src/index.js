@@ -108,8 +108,7 @@ function generateH() {
  * @returns {number} The result of the right rotation operation.
  */
 function ROTR(x, n, w = 32) {
-    // return (x >>> n) | (x << (w - n)) & (2**w - 1)
-    return (x >>> n) | (x << (32-n));
+    return (x >>> n) | (x << (32 - n));
 }
 
 /**
@@ -224,10 +223,10 @@ function stringToByteArray(str) {
  * @returns {number[]} - The padded message as a byte array.
  */
 function padMessage(message) {
-    byteArr = new TextEncoder('utf-8').encode(message);
+    let byteArr = new TextEncoder('utf-8').encode(message);
     let length = byteArr.length * 8;
     // console.log(`Message length: ${length}bits`)
-    
+
     // Convert to binary string
     let binaryStr = "";
     for (let i = 0; i < byteArr.length; i++) {
@@ -257,6 +256,13 @@ function padMessage(message) {
 }
 
 /* ---------- SHA-256 main functions (Section 6.2) ---------- */
+
+/**
+ * Calculates the SHA-256 hash of the given message.
+ * 
+ * @param {string} b - The message to be hashed.
+ * @returns {string} - The SHA-256 hash of the message.
+ */
 function sha256(b) {
     // Padding the message
     b = padMessage(b);
@@ -267,11 +273,11 @@ function sha256(b) {
     // Generate H^0 (Section 5.3.3)
     let H = generateH();
 
-    console.log(b.length) // 64 or 128 bytes
+    // console.log(b.length) // 64 or 128 bytes
     const blocks = [];
-    for(let i=0; i<b.length; i+=64){
+    for (let i = 0; i < b.length; i += 64) {
         // one whole block of 64bytes or 512bits
-        blocks.push(b.slice(i, i+64))
+        blocks.push(b.slice(i, i + 64))
     }
 
     // console.log(blocks)
@@ -282,12 +288,12 @@ function sha256(b) {
 
         // 1. Prepare the message schedule (Section 6.2.2)
         const W = new Array(64); //each entry is a 32bit number 
-        for(let t=0; t<16; t++){ // 16 entries of 32bit each copied from the entire block
-            W[t] = (block[t*4] << 24) | (block[t*4+1] << 16) | (block[t*4+2] << 8) | (block[t*4+3]); // accomodating 8it numbers into 32bit by shifting 
+        for (let t = 0; t < 16; t++) { // 16 entries of 32bit each copied from the entire block
+            W[t] = (block[t * 4] << 24) | (block[t * 4 + 1] << 16) | (block[t * 4 + 2] << 8) | (block[t * 4 + 3]); // accomodating 8it numbers into 32bit by shifting 
         }
 
-        for(let t=16; t<64; t++){ // remaining 48 entries of 32bit each, calculated from the previous 16 entries
-            W[t] = (sigma1(W[t-2]) + W[t-7] + sigma0(W[t-15]) + W[t-16]) >>> 0; // >>> 0: Zero-fill right shift, converting the result to a 32-bit unsigned integer.
+        for (let t = 16; t < 64; t++) { // remaining 48 entries of 32bit each, calculated from the previous 16 entries
+            W[t] = (sigma1(W[t - 2]) + W[t - 7] + sigma0(W[t - 15]) + W[t - 16]) >>> 0; // >>> 0: Zero-fill right shift, converting the result to a 32-bit unsigned integer.
         }
 
         // console.log(W)
@@ -296,7 +302,7 @@ function sha256(b) {
         let [a, b, c, d, e, f, g, h] = H; // remove the function and use the constant directly
 
         // 3.
-        for(let t=0; t<64; t++){
+        for (let t = 0; t < 64; t++) {
             const T1 = h + SIGMA1(e) + CH(e, f, g) + K[t] + W[t];
             const T2 = SIGMA0(a) + MAJ(a, b, c);
             h = g;
@@ -306,22 +312,20 @@ function sha256(b) {
             d = c;
             c = b;
             b = a;
-            a = (T1 + T2) % 2**32;
+            a = (T1 + T2) % 2 ** 32;
         }
 
         // 4. Compute the i-th intermediate hash value H^i (Section 6.2.2)  
         H = H.map((value, index) => (value + [a, b, c, d, e, f, g, h][index]) >>> 0);
-    
+
     });
 
     // 6. Produce the final hash value (big-endian) (Section 6.2.2)
     let hash = "";
-    for(let i=0; i<8; i++){
+    for (let i = 0; i < 8; i++) {
         hash += H[i].toString(16).padStart(8, '0');
     }
-     return hash;
+    return hash;
 }
 
-// console.log(sha256("paddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArr"));
-console.log(sha256("abc"));
-
+export default sha256;

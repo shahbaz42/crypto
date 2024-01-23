@@ -1,0 +1,12 @@
+{
+  "name": "sha256",
+  "version": "1.0.0",
+  "type":"module",
+  "description": "SHA256 javascript implementation",
+  "main": "index.js",
+  "scripts": {
+    "test": "node src/index.test.js"
+  },
+  "author": "Shahbaz Ali",
+  "license": "ISC"
+}
