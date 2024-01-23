@@ -108,7 +108,8 @@ function generateH() {
  * @returns {number} The result of the right rotation operation.
  */
 function ROTR(x, n, w = 32) {
-    return (x >>> n) | (x << (w - n)) & (Math.pow(2, w) - 1); // & (Math.pow(2, w) - 1) to get rid of overflow
+    // return (x >>> n) | (x << (w - n)) & (2**w - 1)
+    return (x >>> n) | (x << (32-n));
 }
 
 /**
@@ -180,11 +181,31 @@ function SIGMA1(x) {
     return ROTR(x, 6, 32) ^ ROTR(x, 11, 32) ^ ROTR(x, 25, 32);
 }
 
+/**
+ * Converts a binary string to an integer.
+ * 
+ * @param {string} bin - The binary string to convert.
+ * @returns {number} The converted integer.
+ */
+function bin2int(bin) {
+    return parseInt(bin, 2);
+}
+
+/**
+ * Converts an integer to a binary string representation.
+ * @param {number} int - The integer to convert.
+ * @returns {string} The binary string representation of the integer.
+ */
+function int2bin(int) {
+    return int.toString(2);
+}
+
 /* ------------------- Utility functions ------------------- */
 
 
 /**
- * Converts a string to a byte array.
+ * // To remove, no need for it
+ * Converts a string to a byte array. 
  * @param {string} str - The string to convert.
  * @returns {Uint8Array} The byte array representation of the string.
  */
@@ -203,8 +224,9 @@ function stringToByteArray(str) {
  * @returns {number[]} - The padded message as a byte array.
  */
 function padMessage(message) {
-    byteArr = stringToByteArray(message);
+    byteArr = new TextEncoder('utf-8').encode(message);
     let length = byteArr.length * 8;
+    // console.log(`Message length: ${length}bits`)
     
     // Convert to binary string
     let binaryStr = "";
@@ -230,8 +252,50 @@ function padMessage(message) {
     for (let i = 0; i < binaryStr.length; i += 8) {
         paddedByteArr.push(parseInt(binaryStr.slice(i, i + 8), 2));
     }
-
-    return paddedByteArr;
+    // console.log(`Padded message length: ${paddedByteArr.length*8}bits`)
+    return (paddedByteArr)
 }
 
-padMessage("abc");
+/* ---------- SHA-256 main functions (Section 6.2) ---------- */
+function sha256(b) {
+    // Padding the message
+    b = padMessage(b);
+
+    console.log(b.length) // 64 or 128 bytes
+    const blocks = [];
+    for(let i=0; i<b.length; i+=64){
+        // one whole block of 64bytes or 512bits
+        blocks.push(b.slice(i, i+64))
+    }
+
+    // console.log(blocks)
+    blocks.forEach(block => {
+        // console.log(block)
+        // Each block is an array of 64 entries, each entry is 8bit number
+        // total size = 64*8 = 512bits
+
+        // 1. Prepare the message schedule
+        const W = new Array(64); //each entry is a 32bit number 
+        for(let t=0; t<16; t++){
+            W[t] = (block[t*4] << 24) | (block[t*4+1] << 16) | (block[t*4+2] << 8) | (block[t*4+3]); // accomodating 8it numbers into 32bit by shifting 
+        }
+
+        for(let t=16; t<64; t++){
+            W[t] = (sigma1(W[t-2]) + W[t-7] + sigma0(W[t-15]) + W[t-16]) >>> 0;
+        }
+
+        console.log(W)
+        
+        W.forEach((w, i) => {
+            console.log(`W${i.toString().padEnd(2, ' ')} : ${w.toString(2).padStart(32, '0')}`)
+        })
+    
+    });
+    
+
+    return "ok"
+}
+
+// console.log(sha256("paddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArrpaddedByteArr"));
+console.log(sha256("abc"));
+
